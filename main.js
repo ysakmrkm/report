@@ -15,6 +15,7 @@ const redmine = new redmineClient(hostname, config);
 const TogglClient = require('toggl-api');
 const toggl = new TogglClient({apiToken: configs.togglToken});
 
+let cards = [];
 let tasks = [];
 
 // # Trello ボードのカードチェック
@@ -61,22 +62,44 @@ Promise.resolve()
       }
 
       data.forEach((current, index, array)=> {
-        tasks.push(current.name);
+        cards.push(current.name);
+      })
+
+      resolve(cards);
+    });
+  });
+}).then((data)=> {
+  // # 追加されたカードを Redmine のタスク管理用プロジェクトでチケット発行
+  // 1. Redmine のチケットチェック
+
+  return new Promise((resolve, reject)=> {
+    redmine.issues({limit: 100, project_id: configs.redmine.projectId}, (err, data)=> {
+      if (err) throw err;
+
+      topTasks = data.issues.filter((issue)=> {
+        return issue.parent === undefined
+      });
+
+      topTasks.forEach((current, index, array)=> {
+        tasks.push(current.subject);
       })
 
       resolve(tasks);
     });
   });
 }).then((data)=> {
-  console.log(data);
+  // 2. Trello のカードと比較
+
+  newIssues = cards.filter((val, index) => {
+    return tasks.indexOf(val) === -1
+  });
+
+  console.log(newIssues);
+
+  // 3. 無ければチケット発行
 });
 
 // TODO
-// ## 追加されたカードを Redmine のタスク管理用プロジェクトでチケット発行
-// 1. Redmine のチケットチェック
-// 2. Trello のカードと比較
-// 3. 無ければチケット発行
-//
 // # Toggl で作業時間計測
 //
 // ## 初回計測時 1-1 で発行したチケットに子チケットを新規発行
