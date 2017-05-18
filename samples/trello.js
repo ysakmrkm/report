@@ -1,4 +1,4 @@
-const tokens = require('./tokens.js');
+const tokens = require('../config.js');
 const trelloClient = require("node-trello");
 const trello = new trelloClient(tokens.trello.key, tokens.trello.token);
 

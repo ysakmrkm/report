@@ -1,4 +1,4 @@
-const tokens = require('./tokens.js');
+const tokens = require('../config.js');
 const TogglClient = require('toggl-api');
 const toggl = new TogglClient({apiToken: tokens.togglToken});
 

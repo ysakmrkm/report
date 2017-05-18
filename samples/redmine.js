@@ -1,4 +1,4 @@
-const tokens = require('./tokens.js');
+const tokens = require('../config.js');
 const redmineClient = require('node-redmine');
 const hostname = process.env.REDMINE_HOST || tokens.redmine.hostname;
 const config = {
