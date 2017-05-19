@@ -62,7 +62,10 @@ Promise.resolve()
       }
 
       data.forEach((current, index, array)=> {
-        cards.push(current.name);
+        cards.push({
+          'title': current.name,
+          'date': new Date(1000*parseInt(current.id.substring(0,8),16))
+        });
       })
 
       resolve(cards);
@@ -81,7 +84,10 @@ Promise.resolve()
       });
 
       topTasks.forEach((current, index, array)=> {
-        tasks.push(current.subject);
+        tasks.push({
+          'title': current.subject,
+          'date': current.created_on
+        });
       })
 
       resolve(tasks);
@@ -90,8 +96,20 @@ Promise.resolve()
 }).then((data)=> {
   // 2. Trello のカードと比較
 
-  newIssues = cards.filter((val, index) => {
-    return tasks.indexOf(val) === -1
+  newIssues = [];
+
+  cards.forEach((currentCard, cardIndex, cardArray)=> {
+    taskExist = false;
+
+    tasks.forEach((currentTask, taskIndex, taskArray)=> {
+      if(currentTask.title.indexOf(currentCard.title) !== -1) {
+        taskExist = true;
+      }
+    });
+
+    if(!taskExist) {
+      newIssues.push(currentCard);
+    }
   });
 
   console.log(newIssues);
