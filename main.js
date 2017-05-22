@@ -101,25 +101,53 @@ Promise.resolve()
 
   newIssues = [];
 
-  cards.forEach((currentCard, cardIndex, cardArray)=> {
-    taskExist = false;
+  return new Promise((resolve, reject)=> {
+    cards.forEach((currentCard, cardIndex, cardArray)=> {
+      taskExist = false;
 
-    tasks.forEach((currentTask, taskIndex, taskArray)=> {
-      if(currentTask.title.indexOf(currentCard.title) !== -1) {
-        taskExist = true;
+      tasks.forEach((currentTask, taskIndex, taskArray)=> {
+        if(currentTask.title.indexOf(currentCard.title) !== -1) {
+          taskExist = true;
+        }
+      });
+
+      let date = new Date(currentCard.date).getTime();
+
+      // ## 作成日が24時間以内のタスクをチェック
+      if(!taskExist && date >= yesterday.getTime()) {
+        newIssues.push(currentCard);
       }
     });
 
-    let date = new Date(currentCard.date).getTime();
-
-    // 3. 無ければチケット発行
-    // ## チケット発行されていないカードについて、作成日が24時間以内ならチケット発行、そうでなければそのまま
-    if(!taskExist && date >= yesterday.getTime()) {
-      newIssues.push(currentCard);
-    }
+    resolve(newIssues);
   });
+}).then((data)=> {
+  // 3. 無ければチケット発行
 
-  console.log(newIssues);
+  let newIssues = data;
+
+  // ## ユーザーID取得
+  redmine.current_user({include: "memberships,groups"}, function(err, data) {
+    if (err) throw err;
+
+    newIssues.forEach((currentIssue, issueIndex, issueArray)=> {
+      let issue = {
+        'issue': {
+          project_id: configs.redmine.projectId,
+          assigned_to_id: data.user.id,
+          subject: currentIssue.title,
+        }
+      };
+
+      // ## チケット発行
+      redmine.create_issue(issue, (err, data)=> {
+        if (err) {
+          console.log("Error: " + err.message);
+          return;
+        }
+      });
+    });
+  });
 });
 
 // TODO
