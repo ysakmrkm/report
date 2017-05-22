@@ -18,6 +18,9 @@ const toggl = new TogglClient({apiToken: configs.togglToken});
 let cards = [];
 let tasks = [];
 
+let yesterday = new Date().setDate(new Date().getDate() - 1);
+yesterday = new Date(yesterday);
+
 // # Trello ボードのカードチェック
 Promise.resolve()
 .then(()=> {
@@ -107,16 +110,16 @@ Promise.resolve()
       }
     });
 
-    if(!taskExist) {
+    let date = new Date(currentCard.date).getTime();
+
+    // 3. 無ければチケット発行
+    // ## チケット発行されていないカードについて、作成日が24時間以内ならチケット発行、そうでなければそのまま
+    if(!taskExist && date >= yesterday.getTime()) {
       newIssues.push(currentCard);
     }
   });
 
   console.log(newIssues);
-
-  // TODO
-  // 3. 無ければチケット発行
-  // ## チケット発行されていないカードについて、作成日が今日中ならチケット発行、そうでなければそのまま
 });
 
 // TODO
