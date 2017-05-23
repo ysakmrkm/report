@@ -18,11 +18,12 @@ const toggl = new TogglClient({apiToken: configs.togglToken});
 let cards = [];
 let tasks = [];
 
-let yesterday = new Date().setDate(new Date().getDate() - 1);
-yesterday = new Date(yesterday);
-
 // チェック間隔 5分
 const intervalSec = 5 * 60 * 1000;
+
+// 前回チェック時間
+let beforeChecked = new Date().getTime() - intervalSec;
+beforeChecked = new Date(beforeChecked);
 
 // Trello ボードのカードチェック
 getTrelloCards = ()=> {
@@ -128,8 +129,8 @@ createNewIssues = ()=> {
 
         let date = new Date(currentCard.date).getTime();
 
-        // ## 作成日が24時間以内のタスクをチェック
-        if(!taskExist && date >= yesterday.getTime()) {
+        // ## 作成日が前回チェック以降のタスクをチェック
+        if(!taskExist && date >= beforeChecked.getTime()) {
           newIssues.push(currentCard);
         }
       });
