@@ -24,9 +24,11 @@ yesterday = new Date(yesterday);
 // チェック間隔 5分
 const intervalSec = 5 * 60 * 1000;
 
-// # Trello ボードのカードチェック / Redmine プロジェクトの issue チェック・発行
-createNewIssues = ()=> {
-  Promise.resolve()
+// Trello ボードのカードチェック
+getTrelloCards = ()=> {
+  cards = [];
+
+  return Promise.resolve()
   .then(()=> {
     // 1. ボード情報取得
     return new Promise((resolve, reject)=> {
@@ -75,10 +77,19 @@ createNewIssues = ()=> {
           });
         })
 
+        console.log(cards)
+
         resolve(cards);
       });
     });
-  }).then((data)=> {
+  });
+}
+
+// # Trello ボードのカードチェック / Redmine プロジェクトの issue チェック・発行
+createNewIssues = ()=> {
+  tasks = [];
+
+  getTrelloCards().then((data)=> {
     // # 追加されたカードを Redmine のタスク管理用プロジェクトでチケット発行
     // 1. Redmine のチケットチェック
 
@@ -162,7 +173,7 @@ createNewIssues();
 // TODO
 // # Toggl で作業時間計測
 //
-// ## 初回計測時 1-1 で発行したチケットに子チケットを新規発行
+// ## 1-3 のカードにコメントを書いたら 2-3 で発行したチケットに子チケットを新規発行
 //
 // ## Toggl Button で Trello のカードで作業時間計測開始
 //
