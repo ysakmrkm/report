@@ -169,7 +169,76 @@ createNewIssues = ()=> {
   setTimeout(createNewIssues, intervalSec);
 }
 
-createNewIssues();
+// createNewIssues();
+
+Promise.resolve()
+.then(()=> {
+  // 1. ボード情報取得
+  return new Promise((resolve, reject)=> {
+    trello.get('/1/members/me/boards', function(err, data) {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      let board = data.filter((val) => {
+        return val.id === configs.trello.boardId;
+      });
+
+      resolve(board[0]);
+    });
+  });
+}).then((data)=> {
+  // 2. ボードからリスト取得
+  return new Promise((resolve, reject)=> {
+    trello.get('/1/boards/'+data.id+'/lists', function(err, data) {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      let list = data.filter((val) => {
+        return val.name === configs.trello.listName;
+      });
+
+      resolve(list[0]);
+    });
+  });
+}).then((data)=> {
+  // 3. リストからコメントを取得
+  return new Promise((resolve, reject)=> {
+    trello.get('/1/lists/'+data.id+'/actions', function(err, data) {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      let comments = data.filter((val) => {
+        let date = new Date(val.date).getTime();
+
+        return val.type === 'commentCard' && date >= beforeChecked.getTime();
+      });
+
+      resolve(comments);
+    });
+  });
+}).then((data)=> {
+  // 3. コメントからカードを取得
+  data.forEach((currentAction, actionIndex, actionArray)=> {
+    console.log(currentAction.data.card)
+
+    return new Promise((resolve, reject)=> {
+      trello.get('/1/cards/'+currentAction.data.card.id, function(err, data) {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        console.log(data);
+      });
+    });
+  });
+});
 
 // TODO
 // # Toggl で作業時間計測
