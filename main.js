@@ -18,11 +18,13 @@ const toggl = new TogglClient({apiToken: configs.togglToken});
 let cards = [];
 let tasks = [];
 
+const date = new Date();
+
 // チェック間隔 5分
 const intervalSec = 5 * 60 * 1000;
 
 // 前回チェック時間
-let beforeChecked = new Date().getTime() - intervalSec;
+let beforeChecked = date.getTime() - intervalSec;
 beforeChecked = new Date(beforeChecked);
 
 // Trello ボードのカードチェック
@@ -277,9 +279,19 @@ Promise.resolve()
 
 // TODO
 // ## Toggl Button で Trello のカードで作業時間計測開始
-//
 // ## Time Entry 追加毎に Redmine の 2-1 で発行したチケットに作業時間追加
-//
+const today = date.getFullYear()+'-'+('0' + (date.getMonth() + 1)).slice(-2)+'-'+date.getDate()
+
+toggl.getTimeEntries(today+'T00:00:000', today+'T23:59:59', function(err, timeEntries) {
+  timeEntries.forEach((currentTimeEntry, timeEntryIndex, timeEntryArray)=> {
+    entryTime = new Date(currentTimeEntry.at);
+
+    if(entryTime.getTime() >= beforeChecked.getTime()) {
+      console.log(currentTimeEntry)
+    }
+  });
+});
+
 // # Redmine で作業時間計測
 //
 // ## 2-1 で発行したチケットの題名変更([時間] タスク名)
