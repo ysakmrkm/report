@@ -171,6 +171,8 @@ createNewIssues = ()=> {
 
 // createNewIssues();
 
+// # Toggl で作業時間計測
+// ## 1-3 のカードにコメントを書いたら 2-3 で発行したチケットに子チケットを新規発行
 Promise.resolve()
 .then(()=> {
   // 1. ボード情報取得
@@ -225,8 +227,6 @@ Promise.resolve()
 }).then((data)=> {
   // 3. コメントからカードを取得
   data.forEach((currentAction, actionIndex, actionArray)=> {
-    console.log(currentAction.data.card)
-
     return new Promise((resolve, reject)=> {
       trello.get('/1/cards/'+currentAction.data.card.id, function(err, data) {
         if (err) {
@@ -234,17 +234,48 @@ Promise.resolve()
           return;
         }
 
-        console.log(data);
+        resolve(data);
+      });
+    }).then((data)=> {
+      // 親チケット取得
+      return new Promise((resolve, reject)=> {
+        redmine.issues({subject: data.name}, (err, data)=> {
+          if (err) {
+            reject(err);
+            return;
+          }
+
+          resolve(data);
+        });
+      });
+    }).then((data)=> {
+      // 子チケット発行
+      let issue = {
+        'issue': {
+          project_id: configs.redmine.projectId,
+          parent_issue_id: data.issues[0].id,
+          assigned_to_id: data.issues[0].assigned_to.id,
+          subject: currentAction.data.text,
+        }
+      };
+
+      return new Promise((resolve, reject)=> {
+        redmine.create_issue(issue, (err, data)=> {
+          if (err) {
+            reject(err);
+            return;
+          }
+
+          console.log(data);
+
+          resolve(data);
+        });
       });
     });
   });
 });
 
 // TODO
-// # Toggl で作業時間計測
-//
-// ## 1-3 のカードにコメントを書いたら 2-3 で発行したチケットに子チケットを新規発行
-//
 // ## Toggl Button で Trello のカードで作業時間計測開始
 //
 // ## Time Entry 追加毎に Redmine の 2-1 で発行したチケットに作業時間追加
